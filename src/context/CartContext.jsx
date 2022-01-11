@@ -1,75 +1,57 @@
-import { createContext, useState, useContext } from "react";
+import { createContext, useState, useContext } from 'react'
 
-const CartContext = createContext([]);
 
-export const useCartContext = () => useContext(CartContext);
+const CartContext = createContext([]) 
 
-function CartContextProvider( {children} ) {
+export const useCartContext = () => useContext(CartContext)  
+
+
+function CartContextProvider({children}) {
     const [cartList, setCartList] = useState([])
 
-    // Agregar items al carrito
-    const addToCart = (item) => {
 
-        const prodAdd = cartList.find(prod => prod.id === item.id);
 
-        if (!prodAdd ) return setCartList([...cartList, item]);
+    function agregarAlCarrito(item) {       
 
-        prodAdd.quantity = prodAdd.quantity + item.quantity;
-        setCartList([...cartList.filter(prod => prod.id !== item.id), prodAdd]);
+        const index = cartList.findIndex(i => i.id === item.id)
+  
+          if (index > -1) {
+            const oldQy = cartList[index].cantidad
+  
+            cartList.splice(index, 1)
 
-       
-    }
+            setCartList([...cartList, { ...item, cantidad: item.cantidad + oldQy}])
 
-    // Borra item del carrito
-    const removeItemCart = (item) => {
-        setCartList(cartList.filter(prod => prod.id !== item))
-    }
+          } else {
+            setCartList([...cartList, item])
+          }
+      }
 
-    // Vaciar carrito
-    const clearCart = () => {
-        setCartList([])
-    }
+      const precioTotal =()=>{
+        return cartList.reduce((acum, prod) => acum + (prod.cantidad * prod.precio) , 0)
+      }
+      
 
-    // Contador carrito
-    const cartCounter = () => {
-        return (
-            cartList.reduce((prev, prod) => (prev + prod.quantity), 0)
-        )
-    }
+  
+      const borrarItem = (id) => {
+        setCartList( cartList.filter(prod => prod.id !== id) )
+        }
+  
+borrarItem()
 
-    // Subtotal compra
-    const subtotalBuy = () => {
-        return ( 
-            cartList.reduce((prev, prod) => (prev + prod.quantity * prod.price), 0)
-        )
-    }
-
-    // IVA compra
-    const ivaBuy = () => {
-        return( 
-            cartList.reduce(prod => (subtotalBuy(prod) * 0.21), 0)
-        )
-    }
-
-    // Total compra
-    const totalBuy = () => {
-        return( 
-            cartList.reduce(prod => (subtotalBuy(prod) + ivaBuy(prod)), 0)
-        )
-    }
+      function borrarCarrito() {
+          setCartList([])
+      }
+    
 
     return (
         <CartContext.Provider value={{
             cartList,
-            addToCart,
-            removeItemCart,
-            clearCart,
-            cartCounter,
-            subtotalBuy,
-            ivaBuy,
-            totalBuy
+            agregarAlCarrito,
+            borrarCarrito,
+            precioTotal
         }}>
-            {children}
+            { children }
         </CartContext.Provider>
     )
 }
